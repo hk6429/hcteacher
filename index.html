@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>睿師社群成果分享 | 管理系統</title>
+    <!-- 引入 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --primary-hover: #0056b3;
+            --danger-color: #FF3B30;
+            --success-color: #34C759;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #1D1D1F;
+            --text-muted: #86868b;
+            --border-color: #E5E5E7;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+
+        /* --- 導覽列 --- */
+        .navbar {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            height: 64px; display: flex; align-items: center; padding: 0 24px;
+        }
+
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* 移除超連結效果的品牌文字 */
+        .brand {
+            font-size: 20px; font-weight: 700; color: var(--primary-color);
+            letter-spacing: -0.5px; cursor: pointer;
+        }
+
+        .btn-admin {
+            background: transparent; border: 1px solid var(--primary-color);
+            color: var(--primary-color); padding: 6px 14px; border-radius: 8px;
+            cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;
+        }
+
+        .btn-admin:hover { background: var(--primary-color); color: white; }
+
+        /* --- 視圖控制 --- */
+        .view-section { display: none; max-width: 800px; margin: 24px auto; padding: 0 16px; }
+        .view-section.active { display: block; }
+
+        /* --- 卡片設計 --- */
+        .card {
+            background: var(--card-bg); border-radius: var(--radius);
+            padding: 24px; box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color); margin-bottom: 24px;
+        }
+
+        /* --- 發佈區域 --- */
+        .publish-header { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+        .author-select {
+            padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);
+            font-size: 14px; outline: none; background: #f9f9f9;
+        }
+
+        textarea {
+            width: 100%; border: none; resize: none; font-size: 16px;
+            outline: none; min-height: 80px; margin-bottom: 10px;
+        }
+
+        .video-input {
+            width: 100%; padding: 10px; border-radius: 8px;
+            border: 1px solid var(--border-color); margin-bottom: 15px; display: none;
+        }
+
+        /* 圖片預覽區 */
+        .img-preview-container {
+            position: relative; margin-bottom: 15px; display: none;
+        }
+        .img-preview-container img {
+            max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color);
+        }
+        .btn-remove-img {
+            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
+            color: white; border: none; border-radius: 50%; width: 24px; height: 24px;
+            cursor: pointer; font-size: 14px;
+        }
+
+        .publish-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border-color); padding-top: 15px;
+        }
+
+        .btn-main {
+            background: var(--primary-color); color: white; border: none;
+            padding: 10px 24px; border-radius: 20px; font-weight: 600; cursor: pointer;
+        }
+
+        /* --- 動態牆內容 --- */
+        .badge-pinned {
+            background: #EBF5FF; color: var(--primary-color);
+            font-size: 11px; padding: 4px 10px; border-radius: 20px;
+            font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .expert-info { display: flex; gap: 12px; align-items: center; margin-bottom: 15px; }
+        .avatar-circle {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: #f0f0f0; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: #555; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .content-media {
+            margin-top: 15px; border-radius: 10px; overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .content-image { width: 100%; display: block; }
+
+        .video-box {
+            position: relative; padding-bottom: 56.25%; height: 0;
+            background: #000;
+        }
+        .video-box iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
+
+        /* --- 後台列表 --- */
+        .admin-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .admin-item:last-child { border: none; }
+
+        .btn-group { display: flex; gap: 10px; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
+        .btn-pin { background: #F2F2F7; color: #555; }
+        .btn-pin.active { background: var(--primary-color); color: white; }
+        .btn-del { background: #FFF2F2; color: var(--danger-color); }
+
+        /* --- 人員管理 --- */
+        .manage-authors { margin-top: 30px; padding-top: 20px; border-top: 2px dashed var(--border-color); }
+        .add-author-form { display: flex; gap: 10px; margin-top: 10px; }
+        .input-text { flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; }
+
+        /* --- 提示訊息 --- */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); color: white; padding: 12px 24px;
+            border-radius: 40px; font-size: 14px; z-index: 5000; display: none;
+        }
+
+        .modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 導覽列 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- 已取消連結設計，改為純 <div> 顯示，並加上返回首頁的點擊事件 -->
+            <div class="brand" onclick="switchView('home')">睿師社群成果分享</div>
+            <div class="nav-actions">
+                <button class="btn-admin" id="adminNavBtn" onclick="handleAdminEntry()">後台管理</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 前台視圖 -->
+    <section id="homeView" class="view-section active">
+        <div class="card">
+            <div class="publish-header">
+                <span>發表人：</span>
+                <select id="authorSelect" class="author-select">
+                    <!-- 人員名單由 JS 生成 -->
+                </select>
+            </div>
+            <textarea id="postText" placeholder="分享您的教育成果..."></textarea>
+            
+            <!-- 圖片預覽區域 -->
+            <div class="img-preview-container" id="imgPreviewArea">
+                <button class="btn-remove-img" onclick="removeSelectedImg()">×</button>
+                <img id="imgPreview" src="" alt="預覽圖片">
+            </div>
+
+            <input type="text" id="videoUrl" class="video-input" placeholder="貼入 YouTube 影片連結...">
+            
+            <div class="publish-footer">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-admin" style="border-color:#ccc; color:#666;" onclick="triggerImgUpload()">📷 圖片</button>
+                    <button class="btn-admin" style="border-color:#ccc; color:#666;" onclick="toggleVideoInput()">🎥 影片</button>
+                </div>
+                <button class="btn-main" onclick="publishPost()">正式發表</button>
+            </div>
+            <!-- 隱藏的檔案上傳輸入框 -->
+            <input type="file" id="imgUpload" hidden accept="image/*" onchange="handleImgSelect(event)">
+        </div>
+
+        <div id="feed">
+            <!-- 動態內容由 JS 生成 -->
+        </div>
+    </section>
+
+    <!-- 後台視圖 -->
+    <section id="adminView" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2>管理控制台</h2>
+            <button class="btn-del" onclick="logout()" style="padding: 8px 16px;">安全登出</button>
+        </div>
+
+        <div class="card">
+            <h3>成果內容管理</h3>
+            <div id="adminPostList" style="margin-top: 15px;">
+                <!-- 管理列表由 JS 生成 -->
+            </div>
+        </div>
+
+        <div class="card manage-authors">
+            <h3>發表人員管理</h3>
+            <div class="add-author-form">
+                <input type="text" id="newAuthorName" class="input-text" placeholder="輸入老師姓名...">
+                <button class="btn-main" onclick="addNewAuthor()">新增人員</button>
+            </div>
+            <div id="authorListDisplay" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- 人員標籤由 JS 生成 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 登入驗證彈窗 -->
+    <div class="modal" id="loginModal">
+        <div class="card" style="width: 350px;">
+            <h3 style="margin-bottom: 15px;">管理者驗證</h3>
+            <input type="password" id="adminPass" class="input-text" style="width: 100%; margin-bottom: 15px;" placeholder="請輸入管理密碼">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-main" style="flex:1" onclick="submitLogin()">驗證登入</button>
+                <button class="btn-admin" style="flex:1" onclick="closeLogin()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：刪除確認彈窗 -->
+    <div class="modal" id="confirmModal">
+        <div class="card" style="width: 350px; text-align: center;">
+            <h3 style="margin-bottom: 15px; color: var(--danger-color);">確認刪除</h3>
+            <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">確定要永久刪除這篇成果分享嗎？此操作無法恢復。</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-main" style="flex:1; background: var(--danger-color);" onclick="executeDelete()">確認刪除</button>
+                <button class="btn-admin" style="flex:1" onclick="closeConfirmModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：編輯文章彈窗 -->
+    <div class="modal" id="editModal">
+        <div class="card" style="width: 450px;">
+            <h3 style="margin-bottom: 15px; color: var(--primary-color);">編輯成果分享</h3>
+            <textarea id="editPostText" style="width: 100%; height: 120px; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 15px; margin-bottom: 10px; resize: none;"></textarea>
+            <input type="text" id="editVideoUrl" class="input-text" style="width: 100%; margin-bottom: 15px;" placeholder="修改 YouTube 影片連結 (選填)">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-main" style="flex:1;" onclick="saveEdit()">儲存修改</button>
+                <button class="btn-admin" style="flex:1;" onclick="closeEditModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        // --- 1. 系統狀態初始化 ---
+        let authors = ["陳乃誠 老師", "王大明 老師", "陳曉華 教授", "訪客教師"];
+        let posts = [
+            {
+                id: 1700000000000,
+                author: "陳乃誠 老師",
+                content: "歡迎來到睿師社群成果分享平台。這裡是一個讓教育者互相啟發、共同成長的空間。",
+                image: null,
+                video: "dQw4w9WgXcQ",
+                isPinned: true,
+                date: "2023-11-05"
+            }
+        ];
+        let isAdminLoggedIn = false;
+        let selectedImgBase64 = null;
+        let pendingDeleteId = null; // 新增：用來暫存準備刪除的文章 ID
+        let pendingEditId = null;   // 新增：用來暫存準備編輯的文章 ID
+
+        window.onload = () => {
+            refreshAllUI();
+        };
+
+        // --- 2. UI 刷新控制 ---
+        function refreshAllUI() {
+            renderFeed();
+            renderAdminList();
+            renderAuthorUI();
+        }
+
+        // --- 3. 渲染功能 ---
+        
+        // 渲染動態牆 (重構：安全寫入防呆)
+        function renderFeed() {
+            const feedEl = document.getElementById('feed');
+            feedEl.innerHTML = ''; // 清空
+            
+            const sortedPosts = [...posts].sort((a, b) => {
+                if (a.isPinned !== b.isPinned) return b.isPinned ? -1 : 1;
+                return b.id - a.id;
+            });
+
+            sortedPosts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="expert-info">
+                        <div class="avatar-circle">${post.author.charAt(0)}</div>
+                        <div>
+                            <div style="font-weight:700; display:flex; align-items:center; gap:8px;">
+                                ${post.author}
+                                ${post.isPinned ? '<span class="badge-pinned">📌 已置頂</span>' : ''}
+                            </div>
+                            <div style="font-size:12px; color:var(--text-muted);">${post.date}</div>
+                        </div>
+                    </div>
+                    <!-- 使用 textContent 保護這裡，防止換行或特殊符號破壞結構 -->
+                    <div class="feed-post-text" style="font-size:15px; color:#333; margin-bottom:10px; white-space: pre-wrap;"></div>
+                    
+                    ${post.image || post.video ? `<div class="content-media">
+                        ${post.image ? `<img src="${post.image}" class="content-image" alt="分享圖片">` : ''}
+                        ${post.video ? `<div class="video-box"><iframe src="https://www.youtube.com/embed/${post.video}" allowfullscreen></iframe></div>` : ''}
+                    </div>` : ''}
+                `;
+                
+                // 【核心修復點】：安全地寫入文字，支援換行符號
+                card.querySelector('.feed-post-text').textContent = post.content;
+                feedEl.appendChild(card);
+            });
+        }
+
+        // 渲染後台列表 (重構：直接綁定事件，防止 HTML 拼接失效)
+        function renderAdminList() {
+            const listEl = document.getElementById('adminPostList');
+            listEl.innerHTML = '';
+            
+            if (posts.length === 0) {
+                listEl.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">目前尚無分享內容</p>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const item = document.createElement('div');
+                item.className = 'admin-item';
+                item.innerHTML = `
+                    <div style="flex:1; overflow:hidden; padding-right:15px;">
+                        <div class="admin-post-title" style="font-weight:600; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;"></div>
+                        <div style="font-size:12px; color:#999;">${post.author} · ${post.date}</div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-sm btn-pin ${post.isPinned ? 'active' : ''}">
+                            ${post.isPinned ? '取消置頂' : '置頂'}
+                        </button>
+                        <!-- 新增編輯按鈕 -->
+                        <button class="btn-sm btn-edit" style="background: #EBF5FF; color: var(--primary-color);">編輯</button>
+                        <!-- 修改為觸發自定義彈窗，而不是直接調用刪除 -->
+                        <button class="btn-sm btn-del">刪除</button>
+                    </div>
+                `;
+                
+                // 【核心修復點】：安全寫入文字與綁定事件，避免字串混淆
+                item.querySelector('.admin-post-title').textContent = post.content;
+                
+                // 直接將函式綁定到按鈕節點的記憶體上，確保絕對執行
+                item.querySelector('.btn-pin').onclick = () => togglePin(post.id);
+                item.querySelector('.btn-edit').onclick = () => openEditModal(post.id); // 綁定編輯功能
+                item.querySelector('.btn-del').onclick = () => requestDelete(post.id); // 這裡改為 requestDelete
+
+                listEl.appendChild(item);
+            });
+        }
+
+        function renderAuthorUI() {
+            const select = document.getElementById('authorSelect');
+            select.innerHTML = authors.map(a => `<option value="${a}">${a}</option>`).join('');
+
+            const container = document.getElementById('authorListDisplay');
+            container.innerHTML = authors.map((a, index) => `
+                <span style="background:#f0f0f0; padding:4px 12px; border-radius:15px; font-size:13px; display:flex; align-items:center; gap:5px;">
+                    ${a}
+                    ${authors.length > 1 ? `<button onclick="removeAuthor('${a}')" style="border:none; color:#ff3b30; cursor:pointer; font-weight:bold; background:none; font-size:16px;">×</button>` : ''}
+                </span>
+            `).join('');
+        }
+
+        // --- 4. 核心功能執行 ---
+
+        // 新增：觸發編輯彈窗
+        function openEditModal(id) {
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+            pendingEditId = id;
+            document.getElementById('editPostText').value = post.content;
+            document.getElementById('editVideoUrl').value = post.video ? `https://youtu.be/${post.video}` : '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // 新增：關閉編輯彈窗
+        function closeEditModal() {
+            pendingEditId = null;
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // 新增：儲存編輯內容
+        function saveEdit() {
+            if (!pendingEditId) return;
+            const post = posts.find(p => p.id === pendingEditId);
+            if (!post) return;
+
+            const newText = document.getElementById('editPostText').value;
+            const newVideoUrl = document.getElementById('editVideoUrl').value.trim();
+
+            if (!newText.trim() && !post.image) {
+                showToast("文章內容不能為空");
+                return;
+            }
+
+            post.content = newText;
+            post.video = extractYoutubeID(newVideoUrl);
+
+            closeEditModal();
+            refreshAllUI();
+            showToast("文章已成功更新");
+        }
+
+        // 新增：觸發刪除確認彈窗
+        function requestDelete(id) {
+            pendingDeleteId = id;
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // 新增：關閉刪除確認彈窗
+        function closeConfirmModal() {
+            pendingDeleteId = null;
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        // 修改：執行真正的刪除邏輯 (移除原生 confirm)
+        function executeDelete() {
+            if (!pendingDeleteId) return;
+            
+            const originalLength = posts.length;
+            posts = posts.filter(p => p.id !== pendingDeleteId);
+            
+            closeConfirmModal(); // 隱藏彈窗
+            
+            if (posts.length < originalLength) {
+                refreshAllUI();
+                showToast("文章已徹底刪除");
+            } else {
+                showToast("刪除失敗：找不到該文章");
+            }
+        }
+
+        function togglePin(id) {
+            const post = posts.find(p => p.id === id);
+            if (post) {
+                post.isPinned = !post.isPinned;
+                refreshAllUI();
+                showToast(post.isPinned ? "已置頂" : "已取消置頂");
+            }
+        }
+
+        // 圖片上傳處理
+        function triggerImgUpload() {
+            document.getElementById('imgUpload').click();
+        }
+
+        function handleImgSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImgBase64 = e.target.result;
+                    document.getElementById('imgPreview').src = selectedImgBase64;
+                    document.getElementById('imgPreviewArea').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSelectedImg() {
+            selectedImgBase64 = null;
+            document.getElementById('imgUpload').value = '';
+            document.getElementById('imgPreviewArea').style.display = 'none';
+        }
+
+        function toggleVideoInput() {
+            const v = document.getElementById('videoUrl');
+            v.style.display = (v.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function publishPost() {
+            const text = document.getElementById('postText').value; // 移除了 .trim()，允許換行
+            const author = document.getElementById('authorSelect').value;
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+
+            if (!text.trim() && !selectedImgBase64) {
+                showToast("請輸入內容或上傳圖片");
+                return;
+            }
+
+            const newPost = {
+                id: Date.now(),
+                author: author,
+                content: text,
+                image: selectedImgBase64,
+                video: extractYoutubeID(videoUrl),
+                isPinned: false,
+                date: new Date().toLocaleDateString('zh-TW')
+            };
+
+            posts.unshift(newPost);
+            
+            // 重置發表區
+            document.getElementById('postText').value = '';
+            document.getElementById('videoUrl').value = '';
+            document.getElementById('videoUrl').style.display = 'none';
+            removeSelectedImg();
+            
+            refreshAllUI();
+            showToast("發佈成功！");
+        }
+
+        // 人員管理
+        function addNewAuthor() {
+            const input = document.getElementById('newAuthorName');
+            const name = input.value.trim();
+            if (!name || authors.includes(name)) return;
+            authors.push(name);
+            input.value = '';
+            renderAuthorUI();
+            showToast(`已新增：${name}`);
+        }
+
+        function removeAuthor(name) {
+            if (authors.length <= 1) return;
+            authors = authors.filter(a => a !== name);
+            renderAuthorUI();
+        }
+
+        // --- 5. 視圖與驗證邏輯 ---
+        function switchView(view) {
+            if (view === 'admin' && !isAdminLoggedIn) {
+                openLogin();
+                return;
+            }
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(view + 'View').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function handleAdminEntry() {
+            if (isAdminLoggedIn) switchView('admin');
+            else openLogin();
+        }
+
+        function openLogin() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeLogin() { document.getElementById('loginModal').style.display = 'none'; }
+
+        function submitLogin() {
+            const p = document.getElementById('adminPass').value;
+            if (p === 'admin123') {
+                isAdminLoggedIn = true;
+                document.getElementById('adminNavBtn').innerText = "管理控制台";
+                closeLogin();
+                switchView('admin');
+                showToast("驗證成功");
+                document.getElementById('adminPass').value = ''; // 清空密碼框
+            } else {
+                showToast("密碼不正確，請重新輸入"); // 改用自定義提示，避免 alert 被阻擋
+            }
+        }
+
+        function logout() {
+            isAdminLoggedIn = false;
+            document.getElementById('adminNavBtn').innerText = "後台管理";
+            switchView('home');
+            showToast("已登出");
+        }
+
+        // 工具函數
+        function extractYoutubeID(url) {
+            if (!url) return null;
+            const reg = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(reg);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+    </script>
+</body>
+</html>
